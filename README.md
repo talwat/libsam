@@ -6,6 +6,9 @@ Don't ask me how it works, I have literally no idea.
 This version of SAM has been poorly altered to not rupture my
 eardrums and use SDL 2.
 
+I've included a sample header file at [libsam.h](/libsam.h).
+Again, I have no idea what I'm doing.
+
 ## Example? I think?
 
 ```c
