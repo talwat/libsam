@@ -3,7 +3,6 @@
 
 #include <SDL.h>
 #include <SDL_audio.h>
-#include <stdint.h>
 
 extern int debug;
 
