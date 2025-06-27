@@ -40,13 +40,29 @@ int InitSAMAudio()
     return 0;
 }
 
+void adjust_volume_inplace(unsigned char *buffer, int length, int volume)
+{
+    if (volume < 0) volume = 0;
+    if (volume > 128) volume = 128;
+
+    for (int i = 0; i < length; i++)
+    {
+        int sample = buffer[i] - 128; // center at 0
+        sample = (sample * volume) / 128; // scale volume
+        sample += 128; // shift back to unsigned
+
+        // Clamp sample to 0-255
+        if (sample < 0) sample = 0;
+        if (sample > 255) sample = 255;
+
+        buffer[i] = (unsigned char)sample;
+    }
+}
+
 int play_sam(int volume, unsigned char *buffer, int length)
 {
     SDL_LockAudioDevice(device);
-
-    // unsigned char *dst = malloc(length);
-    // SDL_MixAudioFormat(dst, buffer, AUDIO_U8, length, volume);
-    // free(buffer);
+    adjust_volume_inplace(buffer, length, volume);
 
     if (SDL_QueueAudio(device, buffer, length) < 0)
     {
