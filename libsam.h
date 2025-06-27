@@ -10,7 +10,9 @@ extern int debug;
 
 // Function declarations
 void MixAudio(void *unused, Uint8 *stream, int len);
-void OutputSound(void);
+void InitAudio(void);
+int SpeakText(const char *text);
+
 void SetInput(char *_input);
 void SetSpeed(unsigned char _speed);
 void SetPitch(unsigned char _pitch);
@@ -19,7 +21,7 @@ void SetThroat(unsigned char _throat);
 void EnableSingmode();
 void EnableDebug();
 int SAMMain();
-char* GetBuffer();
+char *GetBuffer();
 int GetBufferLength();
 int TextToPhonemes(unsigned char *input);
 

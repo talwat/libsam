@@ -1,17 +1,16 @@
+#include <SDL.h>
+#include <SDL_audio.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
 
-#include "reciter.h"
 #include "sam.h"
+#include "reciter.h"
 
-#ifdef USESDL
-#include <SDL.h>
-#include <SDL_audio.h>
-#endif
+static int pos = 0;
+int debug = 0;
 
-int pos = 0;
 void MixAudio(void *unused, Uint8 *stream, int len)
 {
     int bufferpos = GetBufferLength();
@@ -29,12 +28,15 @@ void MixAudio(void *unused, Uint8 *stream, int len)
     pos += len;
 }
 
-void OutputSound()
+void InitAudio()
 {
-    int bufferpos = GetBufferLength();
-    bufferpos /= 50;
-    SDL_AudioSpec fmt;
+    if (SDL_Init(SDL_INIT_AUDIO) < 0)
+    {
+        fprintf(stderr, "error: SDL_Init failed: %s\n", SDL_GetError());
+        exit(EXIT_FAILURE);
+    }
 
+    SDL_AudioSpec fmt;
     fmt.freq = 22050;
     fmt.format = AUDIO_U8;
     fmt.channels = 1;
@@ -42,20 +44,37 @@ void OutputSound()
     fmt.callback = MixAudio;
     fmt.userdata = NULL;
 
-    /* Open the audio device and start playing sound! */
     if (SDL_OpenAudio(&fmt, NULL) < 0)
     {
-        printf("Unable to open audio: %s\n", SDL_GetError());
+        fprintf(stderr, "Unable to open audio: %s\n", SDL_GetError());
         exit(1);
     }
-    SDL_PauseAudio(0);
+
+    SDL_PauseAudio(0); // Start playback
+}
+
+int SpeakText(const char *text)
+{
+    char input[256] = {0};
+    strncpy(input, text, 255);
+
+    if (!TextToPhonemes((unsigned char *)input))
+        return 1;
+
+    SetInput(input);
+    SAMMain();
+
+    // Reset pos for new playback
+    pos = 0;
+
+    // Wait until audio buffer is done
+    int bufferpos = GetBufferLength();
+    bufferpos /= 50;
 
     while (pos < bufferpos)
     {
         SDL_Delay(100);
     }
 
-    SDL_CloseAudio();
+    return 0;
 }
-
-int debug = 0;

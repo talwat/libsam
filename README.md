@@ -6,34 +6,27 @@ Don't ask me how it works, I have literally no idea.
 This version of SAM has been poorly altered to not rupture my
 eardrums and use SDL 2.
 
-I've included a sample header file at [libsam.h](/libsam.h).
-Again, I have no idea what I'm doing.
+There is also an included header file at [libsam.h](/libsam.h).
+
+> [!NOTE]
+> While the header file is provided as `libsam.h` in the repo, it should
+> be saved in the source tree as `sam.h`. It isn't provided as such to avoid
+> confusion with the already existing `sam.h` elsewhere.
 
 ## Example? I think?
 
 ```c
-int speak_text(const char *text) {
-  char input[256] = {0};
-  strncpy(input, text, 255);
+#include "sam.h"
 
-  if (!TextToPhonemes((unsigned char *)input))
-    return 1;
+int main()
+{
+    InitAudio();
 
-  SetInput(input);
-  SAMMain();
-  OutputSound();
+    SpeakText("HELLO.");
+    SpeakText("I AM SAM.");
 
-  return 0;
-}
-
-int main() {
-	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
-		perror("error: SDL_Init failed\n");
-		exit(EXIT_FAILURE);
-	}
-
-  speak_text("HELLO.");
-
-	atexit(SDL_Quit);
+    SDL_CloseAudio();
+    SDL_Quit();
+    return 0;
 }
 ```
