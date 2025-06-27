@@ -16,7 +16,8 @@ static SDL_AudioDeviceID device = 0;
 
 int InitSAMAudio()
 {
-    if (SDL_Init(SDL_INIT_AUDIO) < 0) {
+    if (SDL_Init(SDL_INIT_AUDIO) < 0)
+    {
         fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
         return -1;
     }
@@ -28,7 +29,8 @@ int InitSAMAudio()
     want.samples = 4096;
 
     device = SDL_OpenAudioDevice(NULL, 0, &want, NULL, 0);
-    if (!device) {
+    if (!device)
+    {
         fprintf(stderr, "SDL_OpenAudioDevice failed: %s\n", SDL_GetError());
         SDL_Quit();
         return -1;
@@ -38,16 +40,18 @@ int InitSAMAudio()
     return 0;
 }
 
-int play_sam(unsigned char *buffer, int length) {
-    if (SDL_QueueAudio(device, buffer, length) < 0) {
+int play_sam(unsigned char *buffer, int length)
+{
+    SDL_LockAudioDevice(device);
+
+    if (SDL_QueueAudio(device, buffer, length) < 0)
+    {
         fprintf(stderr, "SDL_QueueAudio failed: %s\n", SDL_GetError());
+        SDL_UnlockAudioDevice(device);
         return -1;
     }
 
-    // Wait until playback finishes for this buffer
-    while (SDL_GetQueuedAudioSize(device) > 0) {
-        SDL_Delay(10);
-    }
+    SDL_UnlockAudioDevice(device);
 
     return 0;
 }
@@ -99,7 +103,8 @@ void CloseSAMAudio()
     SDL_Quit();
 }
 
-void SpeakSAM(char *text) {
+void SpeakSAM(char *text)
+{
     int len;
     unsigned char *buf;
 
