@@ -18,7 +18,7 @@ There is also an included header file at [libsam.h](/libsam.h).
 
 int main() {
     InitSAMAudio();
-    SpeakSAM("HELLO WORLD.");
+    SpeakSAM(48, "HELLO WORLD.");
     CloseSAMAudio();
 }
 ```

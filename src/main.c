@@ -40,9 +40,13 @@ int InitSAMAudio()
     return 0;
 }
 
-int play_sam(unsigned char *buffer, int length)
+int play_sam(int volume, unsigned char *buffer, int length)
 {
     SDL_LockAudioDevice(device);
+
+    // unsigned char *dst = malloc(length);
+    // SDL_MixAudioFormat(dst, buffer, AUDIO_U8, length, volume);
+    // free(buffer);
 
     if (SDL_QueueAudio(device, buffer, length) < 0)
     {
@@ -103,11 +107,11 @@ void CloseSAMAudio()
     SDL_Quit();
 }
 
-void SpeakSAM(char *text)
+void SpeakSAM(int volume, char *text)
 {
     int len;
     unsigned char *buf;
 
     GenerateSAM(text, &buf, &len);
-    play_sam(buf, len);
+    play_sam(volume, buf, len);
 }
