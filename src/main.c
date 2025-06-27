@@ -47,9 +47,9 @@ void adjust_volume_inplace(unsigned char *buffer, int length, int volume)
 
     for (int i = 0; i < length; i++)
     {
-        int sample = buffer[i] - 128; // center at 0
-        sample = (sample * volume) / 128; // scale volume
-        sample += 128; // shift back to unsigned
+        int sample = buffer[i] - 128; // Center at 0
+        sample = (sample * volume) / 128; // Scale volume
+        sample += 128; // Shift back to unsigned
 
         // Clamp sample to 0-255
         if (sample < 0) sample = 0;
