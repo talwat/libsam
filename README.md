@@ -1,5 +1,9 @@
 # libsam
 
+> [!WARNING]
+> This library is still under heavy development and is prone to causing
+> loud screeching noises! Do not use it yet!
+
 A library version of [SAM](https://github.com/s-macke/SAM).
 
 Don't ask me how it works, I have literally no idea.
@@ -25,8 +29,7 @@ int main()
     SpeakText("HELLO.");
     SpeakText("I AM SAM.");
 
-    SDL_CloseAudio();
-    SDL_Quit();
+    CloseAudio();
     return 0;
 }
 ```

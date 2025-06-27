@@ -10,7 +10,8 @@ extern int debug;
 
 // Function declarations
 void MixAudio(void *unused, Uint8 *stream, int len);
-void InitAudio(void);
+void InitAudio();
+void CloseAudio();
 int SpeakText(const char *text);
 
 void SetInput(char *_input);

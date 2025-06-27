@@ -9,43 +9,37 @@
 #include "sam.h"
 #include "reciter.h"
 
-static SDL_AudioDeviceID audio_device;
-static SDL_AudioSpec fmt;
-static pthread_mutex_t audio_mutex = PTHREAD_MUTEX_INITIALIZER;
-
-static Uint8 *audioBuffer = NULL;
-static int audioBufferLen = 0;
-static int debug = 0;
+extern int debug = 0;
 static int pos = 0;
 
-static void MixAudio(void *userdata, Uint8 *stream, int len)
+// Audio callback: mix audio from SAM buffer into SDL stream
+void MixAudio(void *unused, Uint8 *stream, int len)
 {
-    pthread_mutex_lock(&audio_mutex);
+    int bufferpos = GetBufferLength();
+    Uint8 *buffer = (Uint8 *)GetBuffer();
 
     memset(stream, 128, len);
 
-    if (pos >= audioBufferLen) {
-        pthread_mutex_unlock(&audio_mutex);
+    if (pos >= bufferpos)
         return;
-    }
 
-    int remaining = audioBufferLen - pos;
-    if (remaining < len)
-        len = remaining;
+    if ((bufferpos - pos) < len)
+        len = bufferpos - pos;
 
-    SDL_MixAudioFormat(stream, audioBuffer + pos, AUDIO_U8, len, 48);
+    SDL_MixAudioFormat(stream, buffer + pos, AUDIO_U8, len, 64);
     pos += len;
-
-    pthread_mutex_unlock(&audio_mutex);
 }
 
-void InitSAMAudio(void)
+// Init audio system
+void InitAudio()
 {
-    if (SDL_Init(SDL_INIT_AUDIO) < 0) {
-        fprintf(stderr, "Unable to init SDL audio: %s\n", SDL_GetError());
-        exit(1);
+    if (SDL_Init(SDL_INIT_AUDIO) < 0)
+    {
+        fprintf(stderr, "error: SDL_Init failed: %s\n", SDL_GetError());
+        exit(EXIT_FAILURE);
     }
 
+    SDL_AudioSpec fmt;
     fmt.freq = 22050;
     fmt.format = AUDIO_U8;
     fmt.channels = 1;
@@ -53,33 +47,42 @@ void InitSAMAudio(void)
     fmt.callback = MixAudio;
     fmt.userdata = NULL;
 
-    audio_device = SDL_OpenAudioDevice(NULL, 0, &fmt, NULL, 0);
-    if (!audio_device) {
-        fprintf(stderr, "Unable to open SDL audio: %s\n", SDL_GetError());
+    if (SDL_OpenAudio(&fmt, NULL) < 0)
+    {
+        fprintf(stderr, "Unable to open audio: %s\n", SDL_GetError());
         exit(1);
     }
 
-    SDL_PauseAudioDevice(audio_device, 0);
+    SDL_PauseAudio(0); // Start playback
 }
 
-void SpeakText(const char *text)
+// SpeakText blocks until audio done playing
+int SpeakText(const char *text)
 {
     char input[256] = {0};
     strncpy(input, text, 255);
 
-    if (!TextToPhonemes((unsigned char *)input)) {
-        fprintf(stderr, "TextToPhonemes failed\n");
-        return;
-    }
-
-    pthread_mutex_lock(&audio_mutex);
+    if (!TextToPhonemes((unsigned char *)input))
+        return 1;
 
     SetInput(input);
     SAMMain();
 
-    audioBuffer = GetBuffer();
-    audioBufferLen = GetBufferLength();
     pos = 0;
 
-    pthread_mutex_unlock(&audio_mutex);
+    int bufferpos = GetBufferLength();
+
+    // Wait until the buffer has finished playing
+    while (pos < bufferpos)
+    {
+        SDL_Delay(10);
+    }
+
+    return 0;
+}
+
+void CloseAudio()
+{
+    SDL_QuitSubSystem(SDL_INIT_AUDIO);
+    SDL_Quit();
 }
