@@ -17,19 +17,14 @@ There is also an included header file at [libsam.h](/libsam.h).
 > be saved in the source tree as `sam.h`. It isn't provided as such to avoid
 > confusion with the already existing `sam.h` elsewhere.
 
-## Example? I think?
+## Example
 
 ```c
 #include "sam.h"
 
-int main()
-{
-    InitAudio();
-
-    SpeakText("HELLO.");
-    SpeakText("I AM SAM.");
-
-    CloseAudio();
-    return 0;
+int main() {
+    InitSAMAudio();
+    SpeakSAM("HELLO WORLD.");
+    CloseSAMAudio();
 }
 ```

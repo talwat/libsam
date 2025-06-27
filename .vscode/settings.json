@@ -1,6 +1,22 @@
 {
     "files.associations": {
         "string.h": "c",
-        "sdl.h": "c"
+        "sdl.h": "c",
+        "stdlib.h": "c",
+        "stdio.h": "c",
+        "array": "c",
+        "hash_map": "c",
+        "chrono": "c",
+        "deque": "c",
+        "list": "c",
+        "string": "c",
+        "unordered_map": "c",
+        "vector": "c",
+        "string_view": "c",
+        "format": "c",
+        "initializer_list": "c",
+        "ranges": "c",
+        "span": "c",
+        "text_encoding": "c"
     }
 }

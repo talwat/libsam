@@ -1,6 +1,7 @@
 #include <SDL.h>
 #include <SDL_audio.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
@@ -10,54 +11,71 @@
 #include "reciter.h"
 
 extern int debug = 0;
-static int pos = 0;
 
-// Audio callback: mix audio from SAM buffer into SDL stream
-void MixAudio(void *unused, Uint8 *stream, int len)
+static SDL_AudioDeviceID device = 0;
+
+int InitSAMAudio()
 {
-    int bufferpos = GetBufferLength();
-    Uint8 *buffer = (Uint8 *)GetBuffer();
-
-    memset(stream, 128, len);
-
-    if (pos >= bufferpos)
-        return;
-
-    if ((bufferpos - pos) < len)
-        len = bufferpos - pos;
-
-    SDL_MixAudioFormat(stream, buffer + pos, AUDIO_U8, len, 64);
-    pos += len;
-}
-
-// Init audio system
-void InitAudio()
-{
-    if (SDL_Init(SDL_INIT_AUDIO) < 0)
-    {
-        fprintf(stderr, "error: SDL_Init failed: %s\n", SDL_GetError());
-        exit(EXIT_FAILURE);
+    if (SDL_Init(SDL_INIT_AUDIO) < 0) {
+        fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
+        return -1;
     }
 
-    SDL_AudioSpec fmt;
-    fmt.freq = 22050;
-    fmt.format = AUDIO_U8;
-    fmt.channels = 1;
-    fmt.samples = 2048;
-    fmt.callback = MixAudio;
-    fmt.userdata = NULL;
+    SDL_AudioSpec want = {0};
+    want.freq = 22050;
+    want.format = AUDIO_U8;
+    want.channels = 1;
+    want.samples = 4096;
 
-    if (SDL_OpenAudio(&fmt, NULL) < 0)
-    {
-        fprintf(stderr, "Unable to open audio: %s\n", SDL_GetError());
-        exit(1);
+    device = SDL_OpenAudioDevice(NULL, 0, &want, NULL, 0);
+    if (!device) {
+        fprintf(stderr, "SDL_OpenAudioDevice failed: %s\n", SDL_GetError());
+        SDL_Quit();
+        return -1;
     }
 
-    SDL_PauseAudio(0); // Start playback
+    SDL_PauseAudioDevice(device, 0);
+    return 0;
 }
 
-// SpeakText blocks until audio done playing
-int SpeakText(const char *text)
+int play_sam(unsigned char *buffer, int length) {
+    if (SDL_QueueAudio(device, buffer, length) < 0) {
+        fprintf(stderr, "SDL_QueueAudio failed: %s\n", SDL_GetError());
+        return -1;
+    }
+
+    // Wait until playback finishes for this buffer
+    while (SDL_GetQueuedAudioSize(device) > 0) {
+        SDL_Delay(10);
+    }
+
+    return 0;
+}
+
+int trim_sam(unsigned char *buffer, int length)
+{
+    int silenceCount = 0;
+
+    for (int i = 0; i < length; i++)
+    {
+        if (buffer[i] == 128)
+        {
+            silenceCount++;
+            if (silenceCount >= 2048)
+            {
+                return i - silenceCount + 1;
+            }
+        }
+        else
+        {
+            silenceCount = 0;
+        }
+    }
+
+    return length;
+}
+
+int GenerateSAM(char *text, unsigned char **dest, int *len)
 {
     char input[256] = {0};
     strncpy(input, text, 255);
@@ -68,21 +86,23 @@ int SpeakText(const char *text)
     SetInput(input);
     SAMMain();
 
-    pos = 0;
-
-    int bufferpos = GetBufferLength();
-
-    // Wait until the buffer has finished playing
-    while (pos < bufferpos)
-    {
-        SDL_Delay(10);
-    }
+    *dest = GetBuffer();
+    int raw_len = GetBufferLength();
+    *len = trim_sam(*dest, raw_len);
 
     return 0;
 }
 
-void CloseAudio()
+void CloseSAMAudio()
 {
     SDL_QuitSubSystem(SDL_INIT_AUDIO);
     SDL_Quit();
+}
+
+void SpeakSAM(char *text) {
+    int len;
+    unsigned char *buf;
+
+    GenerateSAM(text, &buf, &len);
+    play_sam(buf, len);
 }

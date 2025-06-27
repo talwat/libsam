@@ -3,16 +3,14 @@
 
 #include <SDL.h>
 #include <SDL_audio.h>
+#include <stdint.h>
 
-// Extern variables
-extern int pos;
 extern int debug;
 
-// Function declarations
-void MixAudio(void *unused, Uint8 *stream, int len);
-void InitAudio();
-void CloseAudio();
-int SpeakText(const char *text);
+int InitSAMAudio();
+int GenerateSAM(char *text, unsigned char **dest, int *len);
+void CloseSAMAudio();
+void SpeakSAM(char *text);
 
 void SetInput(char *_input);
 void SetSpeed(unsigned char _speed);
