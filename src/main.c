@@ -109,7 +109,7 @@ int GenerateSAM(char *text, unsigned char **dest, int *len)
     }
     input[i] = '\0';
 
-    if (i == 0 || input[i - 1] != '.') {
+    if (i == 0 || (input[i - 1] != '.' && input[i - 1] != '?' && input[i - 1] != '!')) {
         input[i] = '.';
         input[i + 1] = '\0';
     } else {
