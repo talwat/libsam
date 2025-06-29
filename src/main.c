@@ -102,7 +102,20 @@ int trim_sam(unsigned char *buffer, int length)
 int GenerateSAM(char *text, unsigned char **dest, int *len)
 {
     char input[256] = {0};
-    strncpy(input, text, 255);
+
+    int i = 0;
+    for (; i < 254 && text[i] != '\0'; ++i) {
+        input[i] = toupper((unsigned char)text[i]);
+    }
+    input[i] = '\0';
+
+    if (i == 0 || input[i - 1] != '.') {
+        input[i] = '.';
+        input[i + 1] = '\0';
+    } else {
+        // Already ended with '.', just null-terminate
+        input[i] = '\0';
+    }
 
     if (!TextToPhonemes((unsigned char *)input))
         return 1;
