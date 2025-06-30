@@ -141,6 +141,10 @@ void SpeakSAM(int volume, char *text)
     int len;
     unsigned char *buf;
 
+    printf("Speaking: %s\n", text);
+
     GenerateSAM(text, &buf, &len);
     play_sam(volume, buf, len);
+
+    free(buf);
 }

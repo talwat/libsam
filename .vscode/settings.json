@@ -18,6 +18,12 @@
         "ranges": "c",
         "span": "c",
         "text_encoding": "c",
-        "variant": "c"
+        "variant": "c",
+        "memory_resource": "c",
+        "memory": "c",
+        "fstream": "c",
+        "istream": "c",
+        "sstream": "c",
+        "streambuf": "c"
     }
 }

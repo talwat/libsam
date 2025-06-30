@@ -21,4 +21,7 @@ $(LIBNAME): $(OBJS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f *.o $(LIBNAME)
+	rm -f *.o $(LIBNAME) test
+
+test: test.c $(LIBNAME)
+	$(CC) -o test test.c $(CFLAGS) $(LFLAGS) -L. -lsam
